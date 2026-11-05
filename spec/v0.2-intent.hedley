@@ -1,0 +1,77 @@
+language Hedley version 0.2
+status PROPOSED
+purpose human_agent_communication
+
+principle compact_by_default
+  model only state that changes a decision or guarantee
+  keep uncommon detail behind stable references
+
+principle no_silent_semantics
+  every claimed outcome must appear in Hedley
+  missing expressiveness becomes a language_gap
+
+construct state
+  declares domain state and initial values
+
+construct rule
+  models an internal transition
+  enabled when <guard>
+  a false guard means BLOCKED only
+  no error or response is implied
+
+construct operation <id>(<inputs>) -> <Outcome>
+  models an external invocation
+  cases are disjoint and exhaustive
+
+  case <id>
+    when <precondition>
+    return <Outcome>
+    change <state assignments>
+    ensure <postcondition>
+    preserve <important unchanged state>
+
+construct workflow <id>
+  models non-atomic behavior only when intermediate effects matter
+  names steps, commit points, failures, interruptions, and recovery
+
+construct adapter <id>
+  maps an Outcome to protocol-visible behavior
+  may define diagnostics, exit codes, responses, or UI messages
+  may not redefine the domain transition
+
+construct invariant <id>
+  holds in every reachable state within the declared scope
+
+construct transition_property <id>
+  relates pre-state and post-state for named accepted cases
+
+construct language_gap <id>
+  claim <behavior not expressible>
+  missing_construct <needed semantic feature>
+  consequence <what cannot be established>
+
+construct correspondence <id>
+  contract <stable Hedley IDs>
+  implementation <revision and stable symbols>
+  verification <evidence IDs>
+  status PROPOSED | SOURCE_INSPECTED | TESTED | MODEL_CHECKED | PROVED
+
+construct evidence <id>
+  checked <claim and target>
+  method <command, inspection, model, or proof>
+  result <observed result>
+  limits <scope not established>
+
+protocol conversation
+  use Hedley for the selected semantic discussion
+  do not substitute English or another language for a missing construct
+  reference stable IDs during review and comprehension checks
+  expand detail only when it changes a decision, guarantee, or failure model
+
+unknown
+  formal grammar
+  parser and type checker
+  composition between contracts
+  temporal and concurrency notation beyond explicit workflows
+  editor and visual projection
+

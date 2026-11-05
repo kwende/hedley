@@ -1,0 +1,11 @@
+Self-checks passed: defect detection, exclusion, stale rejection, valid progress.
+
+BEFORE
+37 reachable states; 62 transitions; 24 unauthorized completion edges
+Shortest counterexample: claim A -> expire -> complete A
+
+AFTER
+37 reachable states; 38 transitions; 0 unauthorized completion edges
+Property holds in this finite model only; no implementation correspondence established.
+
+Scope: finite companion model only. Not parsed from lease.hedley; not checked against production code.

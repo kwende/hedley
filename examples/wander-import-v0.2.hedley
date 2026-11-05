@@ -1,0 +1,47 @@
+contract DesktopLedgerImport version 0.2
+status WORKING_EXAMPLE
+
+type ImportOutcome
+  SourceUnavailable
+  DestinationAlreadyExists
+  Imported
+  ImportFailed
+
+state
+  source: Ledger
+  destination: Ledger or Absent
+  backup: Backup or Absent
+
+operation O1_import(source, destination) -> ImportOutcome
+  case C1_source_missing
+    when not source.readable
+    return SourceUnavailable
+    preserve source, destination, backup
+
+  case C2_destination_exists
+    when source.readable and destination != Absent
+    return DestinationAlreadyExists
+    preserve source, destination, backup
+
+  case C3_success
+    when source.readable and destination = Absent and migration_succeeds
+    return Imported
+    create destination, backup
+    ensure source = pre.source
+    ensure inventory(destination) = inventory(pre.source)
+
+  case C4_failure
+    when source.readable and destination = Absent and not migration_succeeds
+    return ImportFailed
+    preserve source, destination
+    allow backup to be created
+
+transition_property P1_existing_destination_is_not_overwritten
+  for every accepted O1_import.C2_destination_exists:
+    post.destination = pre.destination
+
+language_gap G1_process_interruption
+  claim deterministic recovery from process termination during import
+  missing_construct compact crash-point and recovery notation
+  consequence this contract establishes caught outcomes, not crash recovery
+

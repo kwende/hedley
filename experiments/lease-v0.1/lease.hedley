@@ -1,0 +1,67 @@
+contract JobAuthority version 0.1
+status EXPERIMENTAL — human-readable notation, no parser
+intent PROPOSED — illustrative behavior, not an approved workplace requirement
+
+scope
+  one job; workers A and B; at most N successful claims
+  atomic operations; discrete expiration event; no clocks or network model
+  each worker retains only its latest token
+
+state
+  owner: Worker or None = None
+  generation: Integer = 0
+  active: Boolean = false
+  done: Boolean = false
+  held_token[Worker]: Integer = 0
+
+rule claim(worker)
+  enabled when not done and not active and generation < N
+  atomically
+    generation := old(generation) + 1
+    owner := worker
+    active := true
+    held_token[worker] := old(generation) + 1
+
+rule expire
+  enabled when active and not done
+  active := false
+  because expiry withdraws authority; it does not stop the worker
+
+rule complete(worker)
+  before
+    enabled when not done and held_token[worker] > 0
+  after
+    enabled when not done
+      and active
+      and owner = worker
+      and held_token[worker] = generation
+  done := true
+  active := false
+
+property current_authority_required
+  for every accepted complete(worker), in its PRE-state:
+    active and owner = worker and held_token[worker] = generation
+
+property completion_possible
+  after a fresh claim, immediate completion by that claimant is enabled
+
+preserve
+  claim and expire rules are unchanged by this patch
+  completion still succeeds for the active current claimant
+
+walkthrough stale_worker
+  claim(A); expire; claim(B); complete(A)
+  before: A completes despite B's authority
+  after: A is blocked; B can still complete
+
+unknown
+  external side effects by expired workers
+  actual time, clock skew, crashes and storage failures
+  correspondence to a real C# implementation
+
+evidence
+  Python companion manually translates these rules
+  finite exploration checks current_authority_required
+  self-checks exercise completion_possible (not a liveness proof)
+  production proof: NONE
+
